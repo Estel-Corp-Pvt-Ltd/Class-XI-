@@ -1,6 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import Confetti from "./Confetti";
+import { playComplete, playCorrect, playWrong } from "@/utils/sounds";
 
 export type QuizQuestion = {
   q: string;
@@ -19,8 +21,8 @@ export default function QuizCard({
   const [current, setCurrent] = useState(0);
   const [selected, setSelected] = useState<number | null>(null);
   const [score, setScore] = useState(0);
-  const [answered, setAnswered] = useState<number[]>([]);
   const [done, setDone] = useState(false);
+  const [celebrate, setCelebrate] = useState(false);
 
   const q = questions[current];
 
@@ -28,14 +30,24 @@ export default function QuizCard({
     if (selected !== null) return;
     setSelected(idx);
     const isRight = idx === q.correct;
-    if (isRight) setScore((s) => s + 1);
-    setAnswered((a) => [...a, idx]);
+    if (isRight) {
+      setScore((s) => s + 1);
+      playCorrect();
+    } else {
+      playWrong();
+    }
   }
 
   function next() {
     if (current === questions.length - 1) {
+      const finalScore = score;
+      const passed = finalScore / questions.length >= 0.6;
       setDone(true);
-      onComplete?.(score + (selected === q.correct ? 0 : 0));
+      if (passed) {
+        setCelebrate(true);
+        playComplete();
+      }
+      onComplete?.(finalScore);
       return;
     }
     setCurrent((c) => c + 1);
@@ -46,32 +58,43 @@ export default function QuizCard({
     setCurrent(0);
     setSelected(null);
     setScore(0);
-    setAnswered([]);
     setDone(false);
+    setCelebrate(false);
   }
+
+  useEffect(() => {
+    if (!celebrate) return;
+    const t = setTimeout(() => setCelebrate(false), 3000);
+    return () => clearTimeout(t);
+  }, [celebrate]);
 
   if (done) {
     const pct = Math.round((score / questions.length) * 100);
     const passed = pct >= 60;
     return (
-      <div className="card-sketchy p-6 text-center animate-bounce-in">
-        <div className="text-5xl mb-2">{passed ? "🎉" : "💪"}</div>
-        <h3 className="text-2xl font-bold mb-1">
-          {passed ? "Great job!" : "Good try!"}
-        </h3>
-        <p className="text-lg mb-4">
-          You scored{" "}
-          <span className="font-hand text-3xl" style={{ color: "var(--accent-coral)" }}>
-            {score}/{questions.length}
-          </span>{" "}
-          ({pct}%)
-        </p>
-        <div className="flex gap-3 justify-center">
-          <button className="btn-sketchy-outline" onClick={reset}>
-            Try again
-          </button>
+      <>
+        <Confetti active={celebrate} />
+        <div className="card-sketchy p-6 text-center animate-bounce-in">
+          <div className="text-6xl mb-2 animate-wiggle inline-block">
+            {passed ? "🎉" : "💪"}
+          </div>
+          <h3 className="text-2xl font-bold mb-1">
+            {passed ? "Great job!" : "Good try!"}
+          </h3>
+          <p className="text-lg mb-4">
+            You scored{" "}
+            <span className="font-hand text-3xl" style={{ color: "var(--accent-coral)" }}>
+              {score}/{questions.length}
+            </span>{" "}
+            ({pct}%)
+          </p>
+          <div className="flex gap-3 justify-center">
+            <button className="btn-sketchy-outline" onClick={reset}>
+              Try again
+            </button>
+          </div>
         </div>
-      </div>
+      </>
     );
   }
 
@@ -103,16 +126,16 @@ export default function QuizCard({
               key={i}
               onClick={() => pick(i)}
               disabled={selected !== null}
-              className="text-left px-4 py-3 rounded-lg font-semibold transition-all"
+              className={`text-left px-4 py-3 rounded-lg font-semibold transition-all ${
+                show && isCorrect ? "animate-bounce-in" : ""
+              }`}
               style={{
                 background: bg,
                 border: `2px solid ${bd}`,
                 cursor: selected !== null ? "default" : "pointer",
               }}
             >
-              <span className="mr-2">
-                {String.fromCharCode(65 + i)}.
-              </span>
+              <span className="mr-2">{String.fromCharCode(65 + i)}.</span>
               {opt}
               {show && isCorrect && <span className="ml-2">✓</span>}
               {show && isChosen && !isCorrect && <span className="ml-2">✗</span>}

@@ -251,6 +251,30 @@ export const CURRICULUM: Unit[] = [
       },
     ],
   },
+  {
+    id: "unit9",
+    number: 9,
+    title: "Neural Networks",
+    subtitle: "Bonus — how deep learning actually works",
+    color: "var(--accent-lavender)",
+    emoji: "🧠",
+    lessons: [
+      {
+        id: "u9l1",
+        slug: "neural-playground",
+        title: "Neural Network Playground",
+        emoji: "🧠",
+        blurb: "Build a network and watch it think.",
+      },
+      {
+        id: "u9l2",
+        slug: "gradient-descent",
+        title: "Gradient Descent",
+        emoji: "⬇️",
+        blurb: "How networks learn by rolling downhill.",
+      },
+    ],
+  },
 ];
 
 export function findLesson(unitNumber: number, slug: string) {
