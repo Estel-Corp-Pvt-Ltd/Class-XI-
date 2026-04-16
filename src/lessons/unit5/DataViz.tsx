@@ -36,6 +36,7 @@ const DATA = {
 
 function BarChart() {
   const max = Math.max(...DATA.cities.map((d) => d.value));
+  const colors = ["#ff6b6b", "#6ab7ff", "#6ed3b3", "#ffd36b", "#b794f6"];
   return (
     <svg viewBox="0 0 400 260" className="w-full max-w-md">
       <line x1={40} y1={220} x2={390} y2={220} stroke="#1a1a1a" strokeWidth={2} />
@@ -50,11 +51,29 @@ function BarChart() {
               y={220 - h}
               width={50}
               height={h}
-              fill="var(--accent-sky)"
+              fill={colors[i % colors.length]}
               stroke="#1a1a1a"
               strokeWidth={2}
               rx={4}
-            />
+              style={{ transformOrigin: `${x + 25}px 220px` }}
+            >
+              <animate
+                attributeName="height"
+                from={0}
+                to={h}
+                dur="0.8s"
+                fill="freeze"
+                begin={`${i * 0.1}s`}
+              />
+              <animate
+                attributeName="y"
+                from={220}
+                to={220 - h}
+                dur="0.8s"
+                fill="freeze"
+                begin={`${i * 0.1}s`}
+              />
+            </rect>
             <text x={x + 25} y={240} textAnchor="middle" fontSize={11} fontWeight="bold">
               {d.label}
             </text>
@@ -65,8 +84,10 @@ function BarChart() {
               fontSize={11}
               fontWeight="bold"
               fill="#1a1a1a"
+              opacity={0}
             >
               {d.value}
+              <animate attributeName="opacity" from={0} to={1} dur="0.3s" fill="freeze" begin={`${0.7 + i * 0.1}s`} />
             </text>
           </g>
         );
@@ -96,11 +117,13 @@ function Scatter() {
             key={i}
             cx={cx}
             cy={cy}
-            r={7}
+            r={0}
             fill="var(--accent-coral)"
             stroke="#1a1a1a"
             strokeWidth={2}
-          />
+          >
+            <animate attributeName="r" from={0} to={7} dur="0.4s" fill="freeze" begin={`${i * 0.08}s`} />
+          </circle>
         );
       })}
     </svg>
@@ -122,10 +145,21 @@ function LineChart() {
     <svg viewBox="0 0 400 260" className="w-full max-w-md">
       <line x1={40} y1={220} x2={390} y2={220} stroke="#1a1a1a" strokeWidth={2} />
       <line x1={40} y1={20} x2={40} y2={220} stroke="#1a1a1a" strokeWidth={2} />
-      <path d={path} fill="none" stroke="var(--accent-mint)" strokeWidth={3} />
-      {points.map((p) => (
+      <path
+        d={path}
+        fill="none"
+        stroke="var(--accent-mint)"
+        strokeWidth={3}
+        strokeDasharray={800}
+        strokeDashoffset={800}
+      >
+        <animate attributeName="stroke-dashoffset" from={800} to={0} dur="1.4s" fill="freeze" />
+      </path>
+      {points.map((p, i) => (
         <g key={p.label}>
-          <circle cx={p.x} cy={p.y} r={5} fill="var(--accent-coral)" stroke="#1a1a1a" strokeWidth={2} />
+          <circle cx={p.x} cy={p.y} r={0} fill="var(--accent-coral)" stroke="#1a1a1a" strokeWidth={2}>
+            <animate attributeName="r" from={0} to={5} dur="0.3s" fill="freeze" begin={`${0.3 + i * 0.15}s`} />
+          </circle>
           <text x={p.x} y={240} textAnchor="middle" fontSize={11} fontWeight="bold">
             {p.label}
           </text>
@@ -157,10 +191,13 @@ function PieChart() {
         const lx = cx + r * 0.65 * Math.cos(mid);
         const ly = cy + r * 0.65 * Math.sin(mid);
         const el = (
-          <g key={d.label}>
-            <path d={path} fill={colors[i]} stroke="#1a1a1a" strokeWidth={2} />
-            <text x={lx} y={ly} textAnchor="middle" fontSize={11} fontWeight="bold" fill="#1a1a1a">
+          <g key={d.label} style={{ transformOrigin: `${cx}px ${cy}px` }}>
+            <path d={path} fill={colors[i]} stroke="#1a1a1a" strokeWidth={2} opacity={0}>
+              <animate attributeName="opacity" from={0} to={1} dur="0.4s" fill="freeze" begin={`${i * 0.15}s`} />
+            </path>
+            <text x={lx} y={ly} textAnchor="middle" fontSize={11} fontWeight="bold" fill="#1a1a1a" opacity={0}>
               {Math.round(frac * 100)}%
+              <animate attributeName="opacity" from={0} to={1} dur="0.3s" fill="freeze" begin={`${0.3 + i * 0.15}s`} />
             </text>
           </g>
         );
